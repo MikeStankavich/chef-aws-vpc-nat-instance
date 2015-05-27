@@ -13,30 +13,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.hostname = 'aws-vpc-nat-instance-berkshelf'
 
-  # Set the version of chef to install using the vagrant-omnibus plugin
-  # NOTE: You will need to install the vagrant-omnibus plugin:
-  #
-  #   $ vagrant plugin install vagrant-omnibus
-  #
-  if Vagrant.has_plugin?("vagrant-omnibus")
-    config.omnibus.chef_version = 'latest'
-  end
-
   # Every Vagrant virtual environment requires a box to build off of.
   # If this value is a shorthand to a box in Vagrant Cloud then
   # config.vm.box_url doesn't need to be specified.
-  config.vm.box = 'precise64-chef11.8'
+  config.vm.box = 'ubuntu/trusty64'
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # is not a Vagrant Cloud box and if it doesn't already exist on the
   # user's system.
-  config.vm.box_url = 'https://s3.amazonaws.com/crowdsurge-ops-bucket/precise64-chef11.8.box'
+  # config.vm.box_url = 'https://s3.amazonaws.com/crowdsurge-ops-bucket/precise64-chef11.8.box'
 
   # Assign this VM to a host-only network IP, allowing you to access it
   # via the IP. Host-only networks can talk to the host machine as well as
   # any other machines on the same network, but cannot be accessed (through this
   # network interface) by any external networks.
-  config.vm.network :private_network, type: 'dhcp'
+  config.vm.network "private_network", ip: "172.16.100.10"
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
@@ -68,6 +59,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Enabling the Berkshelf plugin. To enable this globally, add this configuration
   # option to your ~/.vagrant.d/Vagrantfile file
+  # NOTE: You will need to install the vagrant-berkshelf plugin:
+  #
+  # $ vagrant plugin install vagrant-berkshelf
+  #
   config.berkshelf.enabled = true
 
   # An array of symbols representing groups of cookbook described in the Vagrantfile
@@ -79,14 +74,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # config.berkshelf.except = []
 
   config.vm.provision :chef_solo do |chef|
-    chef.json = {
-      mysql: {
-        server_root_password: 'rootpass',
-        server_debian_password: 'debpass',
-        server_repl_password: 'replpass'
-      }
-    }
-
+    chef.version = 'latest' 
     chef.run_list = [
       'recipe[aws-vpc-nat-instance::default]'
     ]
