@@ -59,16 +59,16 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
             })
 end
 
-# TODO run script as a service
-=begin
-cron_d 'nat_monitoring' do
-  user node['aws-vpc-nat-instance'][:user]
-  minute '*'
-  hour '*'
-  day '*'
-  month '*'
-  weekday '*'
+# TODO run script as a service or cron job
+# cron_d 'nat_monitoring' do
+#   user node['aws-vpc-nat-instance'][:user]
+#   minute '*'
+#   hour '*'
+#   day '*'
+#   month '*'
+#   weekday '*'
+#
+#   # run every 30s
+#   command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh & sleep 30; #{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh) >/dev/null 2>&1"
+# end
 
-  # run every 30s
-  command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh & sleep 30; #{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh) >/dev/null 2>&1"
-end=end
