@@ -13,19 +13,19 @@ module AwsVpcNatInstance
       @@ec2 ||= create_aws_interface(::Aws::EC2::Client)
     end
 
-    def instance_availability_zone
+    def get_instance_availability_zone
       @@instance_availability_zone ||= node['ec2']['placement_availability_zone']
     end
 
-    def region
+    def get_region
       @@region ||= instance_availability_zone[0..-2]
     end
 
-    def instance_id
+    def get_instance_id
       @@instance_id ||= node['ec2']['instance_id']
     end
 
-    def environment
+    def get_environment
       if node.chef_environment == '_default'
         @@environment = node['aws-vpc-nat-instance']['default_environment_name']
       else
@@ -35,7 +35,7 @@ module AwsVpcNatInstance
 
     def disable_source_dest
       ec2.modify_instance_attribute(
-          instance_id: instance_id,
+          instance_id: get_instance_id,
           source_dest_check: {
               value: false,
           },
@@ -46,7 +46,7 @@ module AwsVpcNatInstance
       resp = ec2.describe_instances(
           filters: [
               {name:'instance-state-name', values:['running']},
-              {name:'tag:Name', values:["#{environment}-nat-#{az}-*"]},
+              {name:'tag:Name', values:["#{get_environment}-nat-#{az}-*"]},
               {name:'availability-zone', values:[az]}
           ]
       )
@@ -57,7 +57,7 @@ module AwsVpcNatInstance
     def get_opposite_rtb_id(az)
       resp = ec2.describe_route_tables(
           filters: [
-              {name:'tag:Name', values:["#{environment}-rtb-private-#{az}"]}
+              {name:'tag:Name', values:["#{get_environment}-rtb-private-#{az}"]}
           ]
       )
       id ||= resp.route_tables.first.route_table_id
