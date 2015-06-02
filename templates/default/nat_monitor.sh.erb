@@ -1,0 +1,134 @@
+#!/bin/bash
+# Based on work by Yuki Takei (yuki@weseek.co.jp) https://github.com/weseek/chef-vpcnat
+
+ENABLED=<%= @enabled %>
+
+# check enabled
+if [ $ENABLED -eq 0 ]; then
+  $LOGGER "script is disabled, exiting..."
+  exit 0
+fi
+
+LOGGER="logger -s -t $0"
+JQ="<%= @jq %>"
+AWS="<%= @aws %>"
+
+SNS_ENABLED=<%= @sns_enabled %>
+SNS_ARN="<%= @sns_arn %>"
+SNS_REGION="<%= @sns_region %>"
+
+# these should be configured for each NAT instance
+REGION=<%= @region %>
+OPPOSITE_RTB_ID=<%= @opposite_rtb_id %>
+NAT_PRIMARY_ID=<%= @opposite_primary_nat_id %>
+NAT_SECONDARY_ID=<%= @instance_id %>
+
+INTERNET_ACCESS_TEST_IP=<%= @internet_access_test_ip %>
+NAT_PRIMARY_IP=`$AWS ec2 describe-instances --region=$REGION \
+ --instance-ids $NAT_PRIMARY_ID | $JQ -r '.Reservations[0].Instances[0].PrivateIpAddress'`
+
+
+sns_publish() {
+  if [ $SNS_ENABLED -eq 0 ]; then
+    $LOGGER "SNS is disabled, exiting..."
+    return;
+  fi
+  # check the existence of SNS settings
+  if [ -z "$SNS_REGION" -o -z "$SNS_ARN" ]; then return; fi
+  # check the count of arguments
+  if [ $# -ne 2 ]; then return; fi
+  $LOGGER "publish SNS to $SNS_ARN"
+
+  TARGET_RTB=$1
+  TARGET_RTB_JSON=`$AWS ec2 describe-route-tables \
+    --region $REGION --route-table-ids $TARGET_RTB | $JQ -r '.RouteTables[]'`
+  TARGET_RTB_NAME=`echo $TARGET_RTB_JSON | $JQ -r '.Tags[] | select(.Key == "Name") | .Value'`
+  CURRENT_NAT_INSTANCE_ID=$2
+  CURRENT_NAT_INSTANCE_NAME=`$AWS ec2 describe-instances --region $REGION --instance-ids $CURRENT_NAT_INSTANCE_ID \
+    | $JQ -r '.Reservations[0].Instances[0].Tags[] | select(.Key == "Name") | .Value'`
+
+  ASSOC_SUBNET_IDS=`echo $TARGET_RTB_JSON | $JQ -r '.Associations[] | select(.SubnetId) | .SubnetId'`
+  ALL_SUBNET_IDS=`echo $ASSOC_SUBNET_IDS | sed -e 's/ /\//g'`
+  SUBNETS_JSON=`$AWS ec2 describe-subnets --region $REGION --subnet-ids $ASSOC_SUBNET_IDS | $JQ -r '.Subnets[]'`
+
+  IFS=$'\n'
+  MESSAGES=()
+  MESSAGES+=("Default gateway of the following subnet(s) is switched.")
+  for subnetid in $ASSOC_SUBNET_IDS; do
+    subnet_json=`echo $SUBNETS_JSON | $JQ -r "select(.SubnetId == \"$subnetid\")"`
+    subnet=`echo $subnet_json | $JQ -r '.CidrBlock'`
+    subnet_name=`echo $subnet_json | $JQ -r '.Tags[] | select(.Key == "Name") | .Value'`
+    MESSAGES+=("- $subnetid ($subnet, $subnet_name)")
+  done
+
+  MESSAGES+=("The current NAT instance is $CURRENT_NAT_INSTANCE_ID($CURRENT_NAT_INSTANCE_NAME)")
+  MESSAGES+=("")
+  MESSAGES+=("Routing table of $TARGET_RTB ($TARGET_RTB_NAME)")
+  ROUTING_TABLE=`$AWS ec2 describe-route-tables \
+    --region $REGION --route-table-ids $TARGET_RTB --query 'RouteTables[0].Routes' --output table`
+  MESSAGES+=(`echo "$ROUTING_TABLE"`)
+
+  $AWS sns --region $SNS_REGION publish \
+    --topic-arn $SNS_ARN \
+    --message "${MESSAGES[*]}" \
+    --subject "NAT instance has switched: $TARGET_RTB($ALL_SUBNET_IDS)"
+}
+
+
+
+# die with error if can't ping my target as I might have problem in Internet connectivity
+$LOGGER "pinging to $INTERNET_ACCESS_TEST_IP via Internet Gateway..."
+if ping -w 2s $INTERNET_ACCESS_TEST_IP > /dev/null; then
+  $LOGGER "SUCCESS: could ping $INTERNET_ACCESS_TEST_IP via Internet Gateway"
+else
+  $LOGGER "FAILED: could NOT ping $INTERNET_ACCESS_TEST_IP via Internet Gateway"
+  $LOGGER "exiting..."
+  exit -1
+fi
+
+# check current route
+CURRENT_NAT_INSTANCE_ID=`\
+  $AWS ec2 --region $REGION describe-route-tables --route-table-ids $OPPOSITE_RTB_ID \
+    | $JQ -r '.RouteTables[0].Routes[] | select(.DestinationCidrBlock == "0.0.0.0/0") | .InstanceId'`
+
+$LOGGER "current NAT instance of $OPPOSITE_RTB_ID is $CURRENT_NAT_INSTANCE_ID"
+
+
+# check ping, and switch default gateway if necessary
+$LOGGER "pinging $NAT_PRIMARY_IP..."
+if ping -w 2s $NAT_PRIMARY_IP > /dev/null; then
+
+  $LOGGER "SUCCESS: could ping NAT instance in opposite zone via private IP $NAT_PRIMARY_IP"
+
+  # if CURRENT nat instance is secondary, switch to primary
+  if [ "$CURRENT_NAT_INSTANCE_ID" = "$NAT_SECONDARY_ID" ]; then
+    $LOGGER "reverting route to primary(opposite) NAT instance."
+    CMD="$AWS ec2 --region $REGION replace-route \
+      --route-table-id $OPPOSITE_RTB_ID --destination-cidr-block 0.0.0.0/0 --instance-id $NAT_PRIMARY_ID"
+    $LOGGER "$CMD"
+    $CMD
+
+    # send alert to SNS
+    sns_publish $OPPOSITE_RTB_ID $NAT_PRIMARY_ID
+  fi
+
+else
+
+  $LOGGER "FAILED: could NOT ping $NAT_PRIMARY_IP via NAT instance in opposite zone."
+
+  # if CURRENT nat instance is primary, switch to secondary
+  if [ "$CURRENT_NAT_INSTANCE_ID" = "$NAT_PRIMARY_ID" ]; then
+    $LOGGER "switching route to secondary(backup) NAT instance."
+    CMD="$AWS ec2 --region $REGION replace-route \
+      --route-table-id $OPPOSITE_RTB_ID --destination-cidr-block 0.0.0.0/0 --instance-id $NAT_SECONDARY_ID"
+    $LOGGER "$CMD"
+    $CMD
+
+    # send alert to SNS
+    sns_publish $OPPOSITE_RTB_ID $NAT_SECONDARY_ID
+  else
+    $LOGGER "continue to use secondary(backup) NAT instance"
+  fi
+
+fi
+$LOGGER "the script has finished."
