@@ -67,7 +67,7 @@ module AwsVpcNatInstance
     private
 
 		def create_aws_interface(aws_interface)
-			aws_interface.new(region: region)
+			aws_interface.new(region: get_region)
 		end
 
   end
