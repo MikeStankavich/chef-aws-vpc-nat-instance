@@ -20,10 +20,10 @@ module AwsVpcNatInstance
     end
 
     def environment
-      if node['chef_environment'] == '_default'
+      if node.chef_environment == '_default'
         @@environment = node['aws-vpc-nat-instance']['default_environment_name']
       else
-        @@environment = node['chef_environment']
+        @@environment = node.chef_environment
       end
     end
 

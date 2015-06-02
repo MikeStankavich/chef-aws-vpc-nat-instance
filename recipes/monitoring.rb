@@ -26,23 +26,23 @@ package 'jq'
 # call library helper function
 ::Chef::Recipe.send(:include, AwsVpcNatInstance::Helper)
 
-zone_conf = node['aws-vpc-nat-instance'][:az][instance_availability_zone]
+zone_conf = node['aws-vpc-nat-instance']['az'][instance_availability_zone]
 zone_conf['opposite_primary_nat_id'] = get_opposite_primary_nat_id(zone_conf[:opposite_zone])
 zone_conf['opposite_rtb'] = get_opposite_rtb_id(zone_conf[:opposite_zone])
 
 # bag_item = data_bag_item_safely('sns', 'alert')
 
-directory node['aws-vpc-nat-instance'][:install_dir] do
-  owner node['aws-vpc-nat-instance'][:user]
-  group node['aws-vpc-nat-instance'][:group]
+directory node['aws-vpc-nat-instance']['install_dir'] do
+  owner node['aws-vpc-nat-instance']['user']
+  group node['aws-vpc-nat-instance']['group']
   mode '755'
   action :create
 end
 
-template "#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitor.sh" do
+template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
   source 'nat_monitor.sh.erb'
-  owner node['aws-vpc-nat-instance'][:user]
-  group node['aws-vpc-nat-instance'][:group]
+  owner node['aws-vpc-nat-instance']['user']
+  group node['aws-vpc-nat-instance']['group']
   mode '755'
   variables({
                 :enabled => zone_conf[:enabled],
@@ -61,7 +61,7 @@ end
 
 # TODO run script as a service
 =begin
-cron_d 'nat_heartbeat' do
+cron_d 'nat_monitoring' do
   user node['aws-vpc-nat-instance'][:user]
   minute '*'
   hour '*'
@@ -70,5 +70,5 @@ cron_d 'nat_heartbeat' do
   weekday '*'
 
   # run every 30s
-  command "(#{node['aws-vpc-nat-instance'][:install_dir]}/check.sh & sleep 30; #{node['aws-vpc-nat-instance'][:install_dir]}/check.sh) >/dev/null 2>&1"
+  command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh & sleep 30; #{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh) >/dev/null 2>&1"
 end=end
