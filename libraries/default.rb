@@ -18,7 +18,7 @@ module AwsVpcNatInstance
     end
 
     def get_region
-      @@region ||= instance_availability_zone[0..-2]
+      @@region ||= get_instance_availability_zone[0..-2]
     end
 
     def get_instance_id
