@@ -27,9 +27,9 @@ package 'jq'
 ::Chef::Recipe.send(:include, AwsVpcNatInstance::Helper)
 
 zone = instance_availability_zone
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_opposite_primary_nat_id
-(zone_conf[:opposite_zone])
-node['aws-vpc-nat-instance']['az'][zone]['opposite_rtb'] = get_opposite_rtb_id(zone_conf[:opposite_zone])
+opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_opposite_primary_nat_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb'] = get_opposite_rtb_id(opposite_zone)
 zone_conf = node['aws-vpc-nat-instance']['az'][zone]
 
 # bag_item = data_bag_item_safely('sns', 'alert')
