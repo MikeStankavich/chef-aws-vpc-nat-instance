@@ -4,6 +4,12 @@ module AwsVpcNatInstance
     # borrowed from https://github.com/opscode-cookbooks/aws/blob/master/libraries/ec2.rb
 
     def ec2
+      begin
+        require 'aws-sdk'
+      rescue LoadError
+        Chef::Log.error("Missing gem 'aws-sdk'. Use the default aws recipe to install it first.")
+      end
+
       @@ec2 ||= create_aws_interface(::Aws::EC2::Client)
     end
 
@@ -61,12 +67,6 @@ module AwsVpcNatInstance
     private
 
 		def create_aws_interface(aws_interface)
-			begin
-				require 'aws-sdk'
-			rescue LoadError
-				Chef::Log.error("Missing gem 'aws-sdk'. Use the default aws recipe to install it first.")
-			end
-
 			aws_interface.new(region: region)
 		end
 
