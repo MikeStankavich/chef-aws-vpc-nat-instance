@@ -21,3 +21,4 @@ bin/*
 
 # IntelliJ Idea
 *.iml
+.idea
