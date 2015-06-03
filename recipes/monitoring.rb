@@ -29,6 +29,7 @@ package 'jq'
 zone = get_instance_availability_zone
 region = get_region
 instance_id = get_instance_id
+instance_private_ip = get_instance_private_ip
 opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
 node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_nat_id(opposite_zone)
 node.default['aws-vpc-nat-instance']['az'][zone]['local_rtb_id'] = get_rtb_id(zone)
@@ -53,7 +54,7 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
                 :enabled => zone_conf[:enabled],
                 :region => region,
                 :instance_id => instance_id,
-                :instance_ip => get_instance_private_ip,
+                :instance_ip => instance_private_ip,
                 :local_rtb_id => zone_conf[:local_rtb_id],
                 :opposite_rtb_id => zone_conf[:opposite_rtb_id],
                 :opposite_primary_nat_id => zone_conf[:opposite_primary_nat_id],
