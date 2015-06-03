@@ -43,9 +43,10 @@ module AwsVpcNatInstance
     end
 
     def get_opposite_primary_nat_id(az)
+      states = %w(running pending stopping stopped)
       resp = ec2.describe_instances(
           filters: [
-              {name:'instance-state-name', values:['running']},
+              {name:'instance-state-name', values: states},
               {name:'tag:Name', values:["#{get_environment}-nat-#{az}-*"]},
               {name:'availability-zone', values:[az]}
           ]
