@@ -5,7 +5,6 @@ default['aws-vpc-nat-instance']['access_key_id'] = nil
 default['aws-vpc-nat-instance']['secret_access_key'] = nil
 default['aws-vpc-nat-instance']['disable_source_dest_check'] = false
 default['aws-vpc-nat-instance']['sns_enabled'] = false
-default['aws-vpc-nat-instance'] = {}
 default['aws-vpc-nat-instance']['install_dir'] = '/usr/local/bin'
 default['aws-vpc-nat-instance']['user'] = 'root'
 default['aws-vpc-nat-instance']['group'] = 'root'
