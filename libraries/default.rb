@@ -25,6 +25,10 @@ module AwsVpcNatInstance
       @@instance_id ||= node['ec2']['instance_id']
     end
 
+    def get_instance_private_ip
+      @@instance_private_ip ||= node['ec2']['local_ipv4']
+    end
+
     def get_environment
       if node.chef_environment == '_default'
         @@environment = node['aws-vpc-nat-instance']['default_environment_name']

@@ -31,7 +31,8 @@ region = get_region
 instance_id = get_instance_id
 opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
 node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_nat_id(opposite_zone)
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb'] = get_rtb_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['local_rtb_id'] = get_rtb_id(zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb_id'] = get_rtb_id(opposite_zone)
 zone_conf = node['aws-vpc-nat-instance']['az'][zone]
 
 # bag_item = data_bag_item_safely('sns', 'alert')
@@ -52,7 +53,9 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
                 :enabled => zone_conf[:enabled],
                 :region => region,
                 :instance_id => instance_id,
-                :opposite_rtb_id => zone_conf[:opposite_rtb],
+                :instance_ip => get_instance_private_ip,
+                :local_rtb_id => zone_conf[:local_rtb_id],
+                :opposite_rtb_id => zone_conf[:opposite_rtb_id],
                 :opposite_primary_nat_id => zone_conf[:opposite_primary_nat_id],
                 :internet_access_test_ip => node['aws-vpc-nat-instance']['internet_access_test_ip'],
                 # :sns_arn => bag_item['dest_arn'],
