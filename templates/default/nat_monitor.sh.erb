@@ -4,7 +4,7 @@
 ENABLED=<%= @enabled %>
 
 # check enabled
-if [ $ENABLED -eq 0 ]; then
+if [ "$ENABLED" != true ]; then
   $LOGGER "script is disabled, exiting..."
   exit 0
 fi
@@ -29,7 +29,7 @@ NAT_PRIMARY_IP=`$AWS ec2 describe-instances --region=$REGION \
 
 
 sns_publish() {
-  if [ $SNS_ENABLED -eq 0 ]; then
+  if [ "$SNS_ENABLED" != true ]; then
     $LOGGER "SNS is disabled, exiting..."
     return;
   fi
