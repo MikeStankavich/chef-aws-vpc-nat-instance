@@ -54,7 +54,7 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
                 :instance_id => instance_id,
                 :opposite_rtb_id => zone_conf[:opposite_rtb],
                 :opposite_primary_nat_id => zone_conf[:opposite_primary_nat_id],
-                :internet_access_test_ip => zone_conf[:internet_access_test_ip],
+                :internet_access_test_ip => node['aws-vpc-nat-instance']['internet_access_test_ip'],
                 # :sns_arn => bag_item['dest_arn'],
                 # :sns_region => bag_item['region'],
                 :sns_enabled => node['aws-vpc-nat-instance'][:sns_enabled],
