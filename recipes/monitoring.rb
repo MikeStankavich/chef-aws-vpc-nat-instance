@@ -30,8 +30,8 @@ zone = get_instance_availability_zone
 region = get_region
 instance_id = get_instance_id
 opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_opposite_primary_nat_id(opposite_zone)
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb'] = get_opposite_rtb_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_nat_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb'] = get_rtb_id(opposite_zone)
 zone_conf = node['aws-vpc-nat-instance']['az'][zone]
 
 # bag_item = data_bag_item_safely('sns', 'alert')

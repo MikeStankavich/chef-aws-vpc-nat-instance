@@ -42,7 +42,7 @@ module AwsVpcNatInstance
       )
     end
 
-    def get_opposite_primary_nat_id(az)
+    def get_nat_id(az)
       states = %w(running pending stopping stopped)
       resp = ec2.describe_instances(
           filters: [
@@ -55,7 +55,7 @@ module AwsVpcNatInstance
       return id
     end
 
-    def get_opposite_rtb_id(az)
+    def get_rtb_id(az)
       resp = ec2.describe_route_tables(
           filters: [
               {name:'tag:Name', values:["#{get_environment}-rtb-private-#{az}"]}
