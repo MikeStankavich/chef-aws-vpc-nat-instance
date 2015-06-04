@@ -38,8 +38,6 @@ node.default['aws-vpc-nat-instance']['monitoring']['az'][zone]['local_rtb_id'] =
 node.default['aws-vpc-nat-instance']['monitoring']['az'][zone]['opposite_rtb_id'] = get_rtb_id(opposite_zone)
 zone_conf = node['aws-vpc-nat-instance']['monitoring']['az'][zone]
 
-# bag_item = data_bag_item_safely('sns', 'alert')
-
 # Add user for nat_monitoring script to run
 group node['aws-vpc-nat-instance']['monitoring']['user'] do
   action :create
@@ -77,9 +75,8 @@ template 'nat_monitor_sh' do
                 :number_of_pings => node['aws-vpc-nat-instance']['monitoring']['number_of_pings'],
                 :ping_timeout => node['aws-vpc-nat-instance']['monitoring']['ping_timeout'],
                 :wait_between_checks => node['aws-vpc-nat-instance']['monitoring']['wait_between_checks'],
-                # :sns_arn => bag_item['dest_arn'],
-                # :sns_region => bag_item['region'],
                 :sns_enabled => node['aws-vpc-nat-instance']['monitoring'][:sns_enabled],
+                :sns_arn => node['aws-vpc-nat-instance']['monitoring']['sns_arn'],
                 :jq => node['aws-vpc-nat-instance'][:jq],
                 :aws => node['aws-vpc-nat-instance'][:awscli]
             })

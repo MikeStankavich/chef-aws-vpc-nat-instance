@@ -18,7 +18,6 @@ WAIT_BETWEEN_CHECKS=<%= @wait_between_checks %>
 REGION=<%= @region %>
 SNS_ENABLED=<%= @sns_enabled %>
 SNS_ARN="<%= @sns_arn %>"
-SNS_REGION="<%= @sns_region %>"
 
 #Local zone
 LOCAL_RTB_ID=<%= @local_rtb_id %>
@@ -39,7 +38,7 @@ sns_publish() {
     return;
   fi
   # check the existence of SNS settings
-  if [ -z "$SNS_REGION" -o -z "$SNS_ARN" ]; then return; fi
+  if [ -z "$REGION" -o -z "$SNS_ARN" ]; then return; fi
   # check the count of arguments
   if [ $# -ne 2 ]; then return; fi
   $LOGGER "publish SNS to $SNS_ARN"
@@ -73,7 +72,7 @@ sns_publish() {
     --region $REGION --route-table-ids $RTB_ID --query 'RouteTables[0].Routes' --output table`
   MESSAGES+=(`echo "$ROUTING_TABLE"`)
 
-  $AWS sns --region $SNS_REGION publish \
+  $AWS sns --region $REGION publish \
     --topic-arn $SNS_ARN \
     --message "${MESSAGES[*]}" \
     --subject "NAT instance has switched in $RTB_NAME ($RTB_ID)"

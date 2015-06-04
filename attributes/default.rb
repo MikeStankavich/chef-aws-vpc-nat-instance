@@ -7,6 +7,7 @@ default['aws-vpc-nat-instance']['monitoring'] = {}
 default['aws-vpc-nat-instance']['monitoring']['enabled'] = true
 default['aws-vpc-nat-instance']['monitoring']['default_environment_name'] = 'prod'
 default['aws-vpc-nat-instance']['monitoring']['sns_enabled'] = false
+default['aws-vpc-nat-instance']['monitoring']['sns_arn'] = nil
 default['aws-vpc-nat-instance']['monitoring']['install_dir'] = '/opt/nat_monitor'
 default['aws-vpc-nat-instance']['monitoring']['user'] = 'natadm'
 default['aws-vpc-nat-instance']['monitoring']['internet_access_test_ip'] = '8.8.4.4'
