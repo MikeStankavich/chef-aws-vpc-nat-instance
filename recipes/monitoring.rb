@@ -59,6 +59,9 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
                 :opposite_rtb_id => zone_conf[:opposite_rtb_id],
                 :opposite_primary_nat_id => zone_conf[:opposite_primary_nat_id],
                 :internet_access_test_ip => node['aws-vpc-nat-instance']['internet_access_test_ip'],
+                :number_of_pings => node['aws-vpc-nat-instance']['number_of_pings'],
+                :ping_timeout => node['aws-vpc-nat-instance']['ping_timeout'],
+                :wait_between_checks => node['aws-vpc-nat-instance']['wait_between_checks'],
                 # :sns_arn => bag_item['dest_arn'],
                 # :sns_region => bag_item['region'],
                 :sns_enabled => node['aws-vpc-nat-instance'][:sns_enabled],
@@ -67,16 +70,11 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
             })
 end
 
-# TODO run script as a service or cron job
+# TODO run script as a service
 # cron_d 'nat_monitoring' do
 #   user node['aws-vpc-nat-instance'][:user]
-#   minute '*'
-#   hour '*'
-#   day '*'
-#   month '*'
-#   weekday '*'
+#   predefined_value '@reboot'
 #
-#   # run every 30s
-#   command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh & sleep 30; #{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh) >/dev/null 2>&1"
+#   command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh >/dev/null 2>&1 &)"
 # end
 

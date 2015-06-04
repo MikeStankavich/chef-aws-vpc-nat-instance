@@ -13,9 +13,9 @@ LOGGER="logger -s -t $0"
 JQ="<%= @jq %>"
 AWS="<%= @aws %>"
 
-NUM_PINGS=3
-PING_TIMEOUT=2s
-WAIT_BETWEEN_CHECKS=10s
+NUM_PINGS=<%= @number_of_pings %>
+PING_TIMEOUT=<%= @ping_timeout %>
+WAIT_BETWEEN_CHECKS=<%= @wait_between_checks %>
 
 SNS_ENABLED=<%= @sns_enabled %>
 SNS_ARN="<%= @sns_arn %>"
