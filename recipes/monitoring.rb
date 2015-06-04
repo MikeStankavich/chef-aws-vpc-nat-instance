@@ -21,6 +21,8 @@ chef_gem 'aws-sdk' do
   version '2.0.32'
 end
 
+include_recipe 'awscli::default'
+
 package 'jq'
 
 # call library helper function
@@ -83,7 +85,6 @@ template 'nat_monitor_sh' do
             })
 end
 
-# TODO run script as a service
 supervisor_service 'nat-monitor' do
   command "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh"
   directory node['aws-vpc-nat-instance']['monitoring']['install_dir']
