@@ -23,3 +23,7 @@ include_recipe 'aws-vpc-nat-instance::masquerade'
 if node['aws-vpc-nat-instance']['disable_source_dest_check'] && ec2?
 	include_recipe 'aws-vpc-nat-instance::ec2' 
 end
+
+if node['aws-vpc-nat-instance']['monitoring']['enabled']
+  include_recipe 'aws-vpc-nat-instance::monitoring'
+end
