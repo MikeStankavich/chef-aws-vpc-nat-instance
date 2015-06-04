@@ -39,6 +39,10 @@ zone_conf = node['aws-vpc-nat-instance']['monitoring']['az'][zone]
 # bag_item = data_bag_item_safely('sns', 'alert')
 
 # Add user for nat_monitoring script to run
+group node['aws-vpc-nat-instance']['monitoring']['user'] do
+  action :create
+end
+
 user node['aws-vpc-nat-instance']['monitoring']['user'] do
   comment 'NAT monitoring user'
   home node['aws-vpc-nat-instance']['monitoring']['install_dir']
