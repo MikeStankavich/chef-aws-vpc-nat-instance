@@ -44,7 +44,7 @@ user node['aws-vpc-nat-instance']['monitoring']['user'] do
   home node['aws-vpc-nat-instance']['monitoring']['install_dir']
   shell '/bin/false'
   system true
-  create_group true
+  gid node['aws-vpc-nat-instance']['monitoring']['user']
 end
 
 directory node['aws-vpc-nat-instance']['monitoring']['install_dir'] do
