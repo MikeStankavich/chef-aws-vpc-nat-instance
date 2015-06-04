@@ -38,9 +38,18 @@ zone_conf = node['aws-vpc-nat-instance']['monitoring']['az'][zone]
 
 # bag_item = data_bag_item_safely('sns', 'alert')
 
+# Add user for nat_monitoring script to run
+user node['aws-vpc-nat-instance']['monitoring']['user'] do
+  comment 'NAT monitoring user'
+  home node['aws-vpc-nat-instance']['monitoring']['install_dir']
+  shell '/bin/false'
+  system true
+  create_group true
+end
+
 directory node['aws-vpc-nat-instance']['monitoring']['install_dir'] do
   owner node['aws-vpc-nat-instance']['monitoring']['user']
-  group node['aws-vpc-nat-instance']['monitoring']['group']
+  group node['aws-vpc-nat-instance']['monitoring']['user']
   mode '755'
   action :create
 end
@@ -48,7 +57,7 @@ end
 template "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh" do
   source 'nat_monitor.sh.erb'
   owner node['aws-vpc-nat-instance']['monitoring']['user']
-  group node['aws-vpc-nat-instance']['monitoring']['group']
+  group node['aws-vpc-nat-instance']['monitoring']['user']
   mode '755'
   variables({
                 :region => region,
