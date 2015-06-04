@@ -30,25 +30,25 @@ zone = get_instance_availability_zone
 region = get_region
 local_nat_id = get_instance_id
 local_nat_ip = get_instance_private_ip
-opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_nat_id'] = get_nat_id(opposite_zone)
-node.default['aws-vpc-nat-instance']['az'][zone]['local_rtb_id'] = get_rtb_id(zone)
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb_id'] = get_rtb_id(opposite_zone)
-zone_conf = node['aws-vpc-nat-instance']['az'][zone]
+opposite_zone = node['aws-vpc-nat-instance']['monitoring']['az'][zone]['opposite_zone']
+node.default['aws-vpc-nat-instance']['monitoring']['az'][zone]['opposite_nat_id'] = get_nat_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['monitoring']['az'][zone]['local_rtb_id'] = get_rtb_id(zone)
+node.default['aws-vpc-nat-instance']['monitoring']['az'][zone]['opposite_rtb_id'] = get_rtb_id(opposite_zone)
+zone_conf = node['aws-vpc-nat-instance']['monitoring']['az'][zone]
 
 # bag_item = data_bag_item_safely('sns', 'alert')
 
-directory node['aws-vpc-nat-instance']['install_dir'] do
-  owner node['aws-vpc-nat-instance']['user']
-  group node['aws-vpc-nat-instance']['group']
+directory node['aws-vpc-nat-instance']['monitoring']['install_dir'] do
+  owner node['aws-vpc-nat-instance']['monitoring']['user']
+  group node['aws-vpc-nat-instance']['monitoring']['group']
   mode '755'
   action :create
 end
 
-template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
+template "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh" do
   source 'nat_monitor.sh.erb'
-  owner node['aws-vpc-nat-instance']['user']
-  group node['aws-vpc-nat-instance']['group']
+  owner node['aws-vpc-nat-instance']['monitoring']['user']
+  group node['aws-vpc-nat-instance']['monitoring']['group']
   mode '755'
   variables({
                 :region => region,
@@ -57,13 +57,13 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
                 :local_rtb_id => zone_conf[:local_rtb_id],
                 :opposite_rtb_id => zone_conf[:opposite_rtb_id],
                 :opposite_nat_id => zone_conf[:opposite_nat_id],
-                :internet_access_test_ip => node['aws-vpc-nat-instance']['internet_access_test_ip'],
-                :number_of_pings => node['aws-vpc-nat-instance']['number_of_pings'],
-                :ping_timeout => node['aws-vpc-nat-instance']['ping_timeout'],
-                :wait_between_checks => node['aws-vpc-nat-instance']['wait_between_checks'],
+                :internet_access_test_ip => node['aws-vpc-nat-instance']['monitoring']['internet_access_test_ip'],
+                :number_of_pings => node['aws-vpc-nat-instance']['monitoring']['number_of_pings'],
+                :ping_timeout => node['aws-vpc-nat-instance']['monitoring']['ping_timeout'],
+                :wait_between_checks => node['aws-vpc-nat-instance']['monitoring']['wait_between_checks'],
                 # :sns_arn => bag_item['dest_arn'],
                 # :sns_region => bag_item['region'],
-                :sns_enabled => node['aws-vpc-nat-instance'][:sns_enabled],
+                :sns_enabled => node['aws-vpc-nat-instance']['monitoring'][:sns_enabled],
                 :jq => node['aws-vpc-nat-instance'][:jq],
                 :aws => node['aws-vpc-nat-instance'][:awscli]
             })
@@ -71,9 +71,9 @@ end
 
 # TODO run script as a service
 # cron_d 'nat_monitoring' do
-#   user node['aws-vpc-nat-instance'][:user]
+#   user node['aws-vpc-nat-instance']['monitoring'][:user]
 #   predefined_value '@reboot'
 #
-#   command "(#{node['aws-vpc-nat-instance'][:install_dir]}/nat_monitoring.sh >/dev/null 2>&1 &)"
+#   command "(#{node['aws-vpc-nat-instance']['monitoring'][:install_dir]}/nat_monitoring.sh >/dev/null 2>&1 &)"
 # end
 

@@ -31,7 +31,7 @@ module AwsVpcNatInstance
 
     def get_environment
       if node.chef_environment == '_default'
-        @@environment = node['aws-vpc-nat-instance']['default_environment_name']
+        @@environment = node['aws-vpc-nat-instance']['monitoring']['default_environment_name']
       else
         @@environment = node.chef_environment
       end
