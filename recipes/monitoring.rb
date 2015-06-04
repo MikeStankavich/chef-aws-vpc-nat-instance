@@ -28,10 +28,10 @@ package 'jq'
 
 zone = get_instance_availability_zone
 region = get_region
-instance_id = get_instance_id
-instance_private_ip = get_instance_private_ip
+local_nat_id = get_instance_id
+local_nat_ip = get_instance_private_ip
 opposite_zone = node['aws-vpc-nat-instance']['az'][zone]['opposite_zone']
-node.default['aws-vpc-nat-instance']['az'][zone]['opposite_primary_nat_id'] = get_nat_id(opposite_zone)
+node.default['aws-vpc-nat-instance']['az'][zone]['opposite_nat_id'] = get_nat_id(opposite_zone)
 node.default['aws-vpc-nat-instance']['az'][zone]['local_rtb_id'] = get_rtb_id(zone)
 node.default['aws-vpc-nat-instance']['az'][zone]['opposite_rtb_id'] = get_rtb_id(opposite_zone)
 zone_conf = node['aws-vpc-nat-instance']['az'][zone]
@@ -51,13 +51,12 @@ template "#{node['aws-vpc-nat-instance']['install_dir']}/nat_monitor.sh" do
   group node['aws-vpc-nat-instance']['group']
   mode '755'
   variables({
-                :enabled => zone_conf[:enabled],
                 :region => region,
-                :instance_id => instance_id,
-                :instance_ip => instance_private_ip,
+                :local_nat_id => local_nat_id,
+                :local_nat_ip => local_nat_ip,
                 :local_rtb_id => zone_conf[:local_rtb_id],
                 :opposite_rtb_id => zone_conf[:opposite_rtb_id],
-                :opposite_primary_nat_id => zone_conf[:opposite_primary_nat_id],
+                :opposite_nat_id => zone_conf[:opposite_nat_id],
                 :internet_access_test_ip => node['aws-vpc-nat-instance']['internet_access_test_ip'],
                 :number_of_pings => node['aws-vpc-nat-instance']['number_of_pings'],
                 :ping_timeout => node['aws-vpc-nat-instance']['ping_timeout'],
