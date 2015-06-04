@@ -54,7 +54,8 @@ directory node['aws-vpc-nat-instance']['monitoring']['install_dir'] do
   action :create
 end
 
-template "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh" do
+template 'nat_monitor_sh' do
+  path "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh"
   source 'nat_monitor.sh.erb'
   owner node['aws-vpc-nat-instance']['monitoring']['user']
   group node['aws-vpc-nat-instance']['monitoring']['user']
@@ -79,10 +80,12 @@ template "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monit
 end
 
 # TODO run script as a service
-# cron_d 'nat_monitoring' do
-#   user node['aws-vpc-nat-instance']['monitoring'][:user]
-#   predefined_value '@reboot'
-#
-#   command "(#{node['aws-vpc-nat-instance']['monitoring'][:install_dir]}/nat_monitoring.sh >/dev/null 2>&1 &)"
-# end
+supervisor_service 'nat-monitor' do
+  command "#{node['aws-vpc-nat-instance']['monitoring']['install_dir']}/nat_monitor.sh"
+  directory node['aws-vpc-nat-instance']['monitoring']['install_dir']
+  user node['aws-vpc-nat-instance']['monitoring']['user']
+  action :enable
+  autostart true
+  subscribes :restart, 'template[nat_monitor_sh]', :delayed
+end
 
