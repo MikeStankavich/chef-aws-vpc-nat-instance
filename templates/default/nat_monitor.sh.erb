@@ -44,16 +44,16 @@ sns_publish() {
   if [ $# -ne 2 ]; then return; fi
   $LOGGER "publish SNS to $SNS_ARN"
 
-  TARGET_RTB=$1
-  TARGET_RTB_JSON=`$AWS ec2 describe-route-tables \
-    --region $REGION --route-table-ids $TARGET_RTB | $JQ -r '.RouteTables[]'`
-  TARGET_RTB_NAME=`echo $TARGET_RTB_JSON | $JQ -r '.Tags[] | select(.Key == "Name") | .Value'`
-  CURRENT_NAT_INSTANCE_ID=$2
-  CURRENT_NAT_INSTANCE_NAME=`$AWS ec2 describe-instances --region $REGION --instance-ids $CURRENT_NAT_INSTANCE_ID \
+  RTB_ID=$1
+  RTB_JSON=`$AWS ec2 describe-route-tables \
+    --region $REGION --route-table-ids $RTB_ID | $JQ -r '.RouteTables[]'`
+  RTB_NAME=`echo $RTB_JSON | $JQ -r '.Tags[] | select(.Key == "Name") | .Value'`
+  NAT_ID=$2
+  NAT_NAME=`$AWS ec2 describe-instances --region $REGION --instance-ids $NAT_ID \
     | $JQ -r '.Reservations[0].Instances[0].Tags[] | select(.Key == "Name") | .Value'`
 
-  ASSOC_SUBNET_IDS=`echo $TARGET_RTB_JSON | $JQ -r '.Associations[] | select(.SubnetId) | .SubnetId'`
-  ALL_SUBNET_IDS=`echo $ASSOC_SUBNET_IDS | sed -e 's/ /\//g'`
+  ASSOC_SUBNET_IDS=`echo $RTB_JSON | $JQ -r '.Associations[] | select(.SubnetId) | .SubnetId'`
+  #SUBNET_IDS=`echo $ASSOC_SUBNET_IDS | sed -e 's/ /\//g'`
   SUBNETS_JSON=`$AWS ec2 describe-subnets --region $REGION --subnet-ids $ASSOC_SUBNET_IDS | $JQ -r '.Subnets[]'`
 
   IFS=$'\n'
@@ -66,17 +66,17 @@ sns_publish() {
     MESSAGES+=("- $subnetid ($subnet, $subnet_name)")
   done
 
-  MESSAGES+=("The current NAT instance is $CURRENT_NAT_INSTANCE_ID($CURRENT_NAT_INSTANCE_NAME)")
+  MESSAGES+=("The current NAT instance is $NAT_NAME ($NAT_ID)")
   MESSAGES+=("")
-  MESSAGES+=("Routing table of $TARGET_RTB ($TARGET_RTB_NAME)")
+  MESSAGES+=("Routing table of $RTB_ID ($RTB_NAME)")
   ROUTING_TABLE=`$AWS ec2 describe-route-tables \
-    --region $REGION --route-table-ids $TARGET_RTB --query 'RouteTables[0].Routes' --output table`
+    --region $REGION --route-table-ids $RTB_ID --query 'RouteTables[0].Routes' --output table`
   MESSAGES+=(`echo "$ROUTING_TABLE"`)
 
   $AWS sns --region $SNS_REGION publish \
     --topic-arn $SNS_ARN \
     --message "${MESSAGES[*]}" \
-    --subject "NAT instance has switched: $TARGET_RTB($ALL_SUBNET_IDS)"
+    --subject "NAT instance has switched in $RTB_NAME ($RTB_ID)"
 }
 
 $LOGGER "Starting NAT monitor"
