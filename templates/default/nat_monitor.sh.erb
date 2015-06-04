@@ -15,7 +15,7 @@ AWS="<%= @aws %>"
 
 NUM_PINGS=3
 PING_TIMEOUT=2
-WAIT_BETWEEN_CHECKS=5
+WAIT_BETWEEN_CHECKS=10
 
 SNS_ENABLED=<%= @sns_enabled %>
 SNS_ARN="<%= @sns_arn %>"
@@ -79,13 +79,14 @@ sns_publish() {
     --subject "NAT instance has switched: $TARGET_RTB($ALL_SUBNET_IDS)"
 }
 
-$LOGGER "-- Starting NAT monitor"
+$LOGGER "Starting NAT monitor"
 $LOGGER "Performing self checks"
 
 # die with error if can't ping my target as I might have problem in Internet connectivity
 $LOGGER "pinging $INTERNET_ACCESS_TEST_IP via Internet Gateway..."
-if ping -c $NUM_PINGS -w $PING_TIMEOUT $INTERNET_ACCESS_TEST_IP > /dev/null; then
-  $LOGGER "SUCCESS: could ping $INTERNET_ACCESS_TEST_IP via Internet Gateway"
+pingresult=`ping -c $NUM_PINGS -W $PING_TIMEOUT $INTERNET_ACCESS_TEST_IP | grep time= | wc -l`
+if [ "$pingresult" > "0" ]; then
+  $LOGGER "SUCCESS: could ping $INTERNET_ACCESS_TEST_IP via Internet Gateway $pingresult times out of $NUM_PINGS"
 else
   $LOGGER "FAILED: could NOT ping $INTERNET_ACCESS_TEST_IP via Internet Gateway"
   $LOGGER "exiting..."
@@ -129,9 +130,10 @@ while [ . ]; do
 
     # check health of other NAT instance and replace route if necessary
     $LOGGER "checking health of other NAT instance with private IP $NAT_PRIMARY_IP $NAT_PRIMARY_IP ..."
-    if ping -c $NUM_PINGS -w $PING_TIMEOUT $NAT_PRIMARY_IP > /dev/null; then
+    pingresult=`ping -c $NUM_PINGS -w $PING_TIMEOUT $NAT_PRIMARY_IP | grep time= | wc -l`
+    if [ "$pingresult" > "0" ]; then
 
-      $LOGGER "SUCCESS: could ping NAT instance in opposite zone via private IP $NAT_PRIMARY_IP"
+      $LOGGER "SUCCESS: could ping NAT instance in opposite zone ($NAT_PRIMARY_IP)"
 
       # if CURRENT nat instance is secondary, switch to primary
       if [ "$CURRENT_NAT_INSTANCE_ID" == "$NAT_SECONDARY_ID" ]; then
@@ -166,3 +168,4 @@ while [ . ]; do
     fi
     sleep $WAIT_BETWEEN_CHECKS
 done
+fi
