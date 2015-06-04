@@ -15,7 +15,7 @@ AWS="<%= @aws %>"
 
 NUM_PINGS=3
 PING_TIMEOUT=2
-WAIT_BETWEEN_CHECKS=10
+WAIT_BETWEEN_CHECKS=10s
 
 SNS_ENABLED=<%= @sns_enabled %>
 SNS_ARN="<%= @sns_arn %>"
@@ -129,11 +129,11 @@ while [ . ]; do
     $LOGGER "current NAT instance of $OPPOSITE_RTB_ID is $CURRENT_NAT_INSTANCE_ID"
 
     # check health of other NAT instance and replace route if necessary
-    $LOGGER "checking health of other NAT instance with private IP $NAT_PRIMARY_IP $NAT_PRIMARY_IP ..."
+    $LOGGER "checking health of other NAT instance with private IP $NAT_PRIMARY_IP ..."
     pingresult=`ping -c $NUM_PINGS -w $PING_TIMEOUT $NAT_PRIMARY_IP | grep time= | wc -l`
     if [ "$pingresult" > "0" ]; then
 
-      $LOGGER "SUCCESS: could ping NAT instance in opposite zone ($NAT_PRIMARY_IP)"
+      $LOGGER "SUCCESS: could ping NAT instance in opposite zone."
 
       # if CURRENT nat instance is secondary, switch to primary
       if [ "$CURRENT_NAT_INSTANCE_ID" == "$NAT_SECONDARY_ID" ]; then
@@ -166,6 +166,7 @@ while [ . ]; do
       fi
 
     fi
+    $LOGGER "Sleeping $WAIT_BETWEEN_CHECKS between checks"
     sleep $WAIT_BETWEEN_CHECKS
-done
+  done
 fi
