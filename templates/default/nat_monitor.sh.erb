@@ -14,7 +14,7 @@ JQ="<%= @jq %>"
 AWS="<%= @aws %>"
 
 NUM_PINGS=3
-PING_TIMEOUT=2
+PING_TIMEOUT=2s
 WAIT_BETWEEN_CHECKS=10s
 
 SNS_ENABLED=<%= @sns_enabled %>
@@ -85,7 +85,7 @@ $LOGGER "Performing self checks"
 # die with error if can't ping my target as I might have problem in Internet connectivity
 $LOGGER "pinging $INTERNET_ACCESS_TEST_IP via Internet Gateway..."
 pingresult=`ping -c $NUM_PINGS -W $PING_TIMEOUT $INTERNET_ACCESS_TEST_IP | grep time= | wc -l`
-if [ "$pingresult" > "0" ]; then
+if [ "$pingresult" != 0 ]; then
   $LOGGER "SUCCESS: could ping $INTERNET_ACCESS_TEST_IP via Internet Gateway $pingresult times out of $NUM_PINGS"
 else
   $LOGGER "FAILED: could NOT ping $INTERNET_ACCESS_TEST_IP via Internet Gateway"
@@ -131,7 +131,7 @@ while [ . ]; do
     # check health of other NAT instance and replace route if necessary
     $LOGGER "checking health of other NAT instance with private IP $NAT_PRIMARY_IP ..."
     pingresult=`ping -c $NUM_PINGS -w $PING_TIMEOUT $NAT_PRIMARY_IP | grep time= | wc -l`
-    if [ "$pingresult" > "0" ]; then
+    if [ "$pingresult" != 0 ]; then
 
       $LOGGER "SUCCESS: could ping NAT instance in opposite zone."
 
