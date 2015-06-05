@@ -59,6 +59,14 @@ Here is a sample policy for NAT instance:
             ]
         },
         {
+            "Sid": "NATPutMetricAlarm",
+            "Effect": "Allow",
+            "Action": [
+                 "cloudwatch:PutMetricAlarm"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "NATAutoRecovery",
             "Effect": "Allow",
             "Action": [
