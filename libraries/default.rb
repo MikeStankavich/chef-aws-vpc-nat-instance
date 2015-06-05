@@ -78,8 +78,8 @@ module AwsVpcNatInstance
       region = get_region
       instance_id = get_instance_id
       resp = cloudwatch.put_metric_alarm(
-          alarm_name: "#{environment}-nat-autorecovery",
-          alarm_description: "NAT Instance autorecovery in #{environment} environment",
+          alarm_name: "#{environment}-nat-autorecovery-#{instance_id}",
+          alarm_description: "NAT Instance #{instance_id} autorecovery in #{environment} environment",
           alarm_actions: ["arn:aws:automate:#{region}:ec2:recover"],
           metric_name: 'StatusCheckFailed_System',
           namespace: 'AWS/EC2',
@@ -91,7 +91,6 @@ module AwsVpcNatInstance
               },
           ],
           period: 60,
-          unit: 'Seconds',
           evaluation_periods: 2,
           threshold: 0,
           comparison_operator: 'GreaterThanThreshold',

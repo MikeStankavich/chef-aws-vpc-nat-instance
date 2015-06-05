@@ -4,7 +4,7 @@ maintainer_email 'williamejsalt@gmail.com'
 license          'Apache 2.0'
 description      'Installs/Configures aws-vpc-nat-instance'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '0.2.0-dev.201506051420'
+version          '0.2.0-dev.201506051502'
 
 depends 'simple_iptables', '= 0.7.1'
 depends 'sysctl', '= 0.6.2'
