@@ -32,6 +32,7 @@ Here is a sample policy for NAT instance:
             "Action": [
                  "ec2:DescribeInstanceStatus",
                  "ec2:DescribeInstances",
+                 "ec2:DescribeInstanceRecoveryAttribute",
                  "ec2:DescribeTags",
                  "ec2:DescribeRouteTables"
             ],
@@ -52,6 +53,16 @@ Here is a sample policy for NAT instance:
             "Effect": "Allow",
             "Action": [
                  "sns:Publish"
+            ],
+            "Resource": [
+                "arn:aws:sns:us-east-1:*:prod-nat-alerts"
+            ]
+        },
+        {
+            "Sid": "NATAutoRecovery",
+            "Effect": "Allow",
+            "Action": [
+                 "ec2:RecoverInstances"
             ],
             "Resource": [
                 "arn:aws:sns:us-east-1:*:prod-nat-alerts"
@@ -102,6 +113,12 @@ Here is a sample policy for NAT instance:
     <td>String</td>
     <td>Disable source dest check</td>
     <td><tt>true</tt></td>
+  </tr>
+  tr>
+    <td><tt>['aws-vpc-nat-instance']['auto_recovery']['enabled']</tt></td>
+    <td>Boolean</td>
+    <td>Enable NAT instance auto recovery via CloudWatch alarm</td>
+    <td><tt>false</tt></td>
   </tr>
   tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['enabled']</tt></td>
