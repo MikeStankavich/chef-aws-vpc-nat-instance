@@ -24,4 +24,4 @@ end
 # call library function here
 ::Chef::Recipe.send(:include, AwsVpcNatInstance::Helper)
 
-disable_source_dest()
+disable_source_dest
