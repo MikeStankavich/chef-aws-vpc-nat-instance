@@ -32,6 +32,7 @@ Here is a sample policy for NAT instance:
             "Action": [
                  "ec2:DescribeInstanceStatus",
                  "ec2:DescribeInstances",
+                 "ec2:DescribeInstanceRecoveryAttribute",
                  "ec2:DescribeTags",
                  "ec2:DescribeRouteTables"
             ],
@@ -52,6 +53,24 @@ Here is a sample policy for NAT instance:
             "Effect": "Allow",
             "Action": [
                  "sns:Publish"
+            ],
+            "Resource": [
+                "arn:aws:sns:us-east-1:*:prod-nat-alerts"
+            ]
+        },
+        {
+            "Sid": "NATPutMetricAlarm",
+            "Effect": "Allow",
+            "Action": [
+                 "cloudwatch:PutMetricAlarm"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "NATAutoRecovery",
+            "Effect": "Allow",
+            "Action": [
+                 "ec2:RecoverInstances"
             ],
             "Resource": [
                 "arn:aws:sns:us-east-1:*:prod-nat-alerts"
@@ -103,13 +122,19 @@ Here is a sample policy for NAT instance:
     <td>Disable source dest check</td>
     <td><tt>true</tt></td>
   </tr>
-  tr>
+  <tr>
+    <td><tt>['aws-vpc-nat-instance']['auto_recovery']['enabled']</tt></td>
+    <td>Boolean</td>
+    <td>Enable NAT instance auto recovery via CloudWatch alarm</td>
+    <td><tt>false</tt></td>
+  </tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['enabled']</tt></td>
     <td>Boolean</td>
     <td>Enable monitoring recipe</td>
     <td><tt>true</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['default_environment_name']</tt></td>
     <td>String</td>
     <td>Monitoring recipe relies on special naming convention for NAT instance and route tables names (see the 
@@ -117,55 +142,55 @@ Here is a sample policy for NAT instance:
     environment.</td>
     <td><tt>prod</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['sns_enabled']</tt></td>
     <td>Boolean</td>
     <td>Enable NAT alerts notifications via SNS</td>
     <td><tt>false</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['sns_arn']</tt></td>
     <td>String</td>
     <td>ARN of SNS topic</td>
     <td><tt>nil</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['install_dir']</tt></td>
     <td>String</td>
     <td>Installation directory for monitoring script</td>
     <td><tt>/opt/nat_monitor</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['user']</tt></td>
     <td>String</td>
     <td>A user to run monitoring script. </td>
     <td><tt>natadm</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['internet_access_test_ip']</tt></td>
     <td>String</td>
     <td>A public Internet address used for Internet connectivity self-check</td>
     <td><tt>8.8.4.4</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['number_of_pings']</tt></td>
     <td>String</td>
     <td>A number of pings during health checks</td>
     <td><tt>3</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['ping_timeout']</tt></td>
     <td>String</td>
     <td>A timeout for ping</td>
     <td><tt>2s</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['wait_between_checks']</tt></td>
     <td>String</td>
     <td>A delay between health check cycles</td>
     <td><tt>10s</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['monitor']['az'][`{availability_zone}`]['opposite_zone']</tt></td>
     <td>String</td>
     <td>An ID of an opposite availability zone to monitor health of NAT instance</td>
@@ -176,13 +201,13 @@ Here is a sample policy for NAT instance:
         </ul>
     </td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['jq']</tt></td>
     <td>String</td>
     <td>A path to JQ binary</td>
     <td><tt>/usr/bin/jq</tt></td>
   </tr>
-  tr>
+  <tr>
     <td><tt>['aws-vpc-nat-instance']['awscli']</tt></td>
     <td>String</td>
     <td>A path to AWSCLI tools binary</td>

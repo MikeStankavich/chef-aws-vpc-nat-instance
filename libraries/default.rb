@@ -13,6 +13,10 @@ module AwsVpcNatInstance
       @@ec2 ||= create_aws_interface(::Aws::EC2::Client)
     end
 
+    def cloudwatch
+      @@cloudwatch ||= create_aws_interface(::Aws::CloudWatch::Client)
+    end
+
     def get_instance_availability_zone
       @@instance_availability_zone ||= node['ec2']['placement_availability_zone']
     end
@@ -67,6 +71,32 @@ module AwsVpcNatInstance
       )
       id ||= resp.route_tables.first.route_table_id
       return id
+    end
+
+    def enable_nat_auto_recovery
+      environment = get_environment
+      region = get_region
+      az = get_instance_availability_zone
+      instance_id = get_instance_id
+      resp = cloudwatch.put_metric_alarm(
+          alarm_name: "#{environment}-nat-autorecovery-#{az}",
+          alarm_description: "Automatic recovery of NAT Instance in #{az} zone in #{environment} environment",
+          alarm_actions: ["arn:aws:automate:#{region}:ec2:recover"],
+          metric_name: 'StatusCheckFailed_System',
+          namespace: 'AWS/EC2',
+          statistic: 'Average',
+          dimensions: [
+              {
+                  name: 'InstanceId',
+                  value: instance_id,
+              },
+          ],
+          period: 60,
+          evaluation_periods: 2,
+          threshold: 0,
+          comparison_operator: 'GreaterThanThreshold',
+      )
+      resp
     end
 
     private

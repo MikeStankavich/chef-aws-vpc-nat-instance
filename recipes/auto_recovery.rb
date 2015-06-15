@@ -1,8 +1,7 @@
 #
 # Cookbook Name:: aws-vpc-nat-instance
-# Recipe:: default
+# Recipe:: autorecovery
 #
-# Copyright (C) 2015 Will Salt
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,17 +16,11 @@
 # limitations under the License.
 #
 
-include_recipe 'chef-sugar::default'
-include_recipe 'aws-vpc-nat-instance::masquerade'
-
-if node['aws-vpc-nat-instance']['disable_source_dest_check'] && ec2?
-	include_recipe 'aws-vpc-nat-instance::ec2' 
+chef_gem 'aws-sdk' do
+  version '2.0.32'
 end
 
-if node['aws-vpc-nat-instance']['monitoring']['enabled']
-  include_recipe 'aws-vpc-nat-instance::monitoring'
-end
+# call library helper function
+::Chef::Recipe.send(:include, AwsVpcNatInstance::Helper)
 
-if node['aws-vpc-nat-instance']['auto_recovery']['enabled']
-  include_recipe 'aws-vpc-nat-instance::auto_recovery'
-end
+enable_nat_auto_recovery
