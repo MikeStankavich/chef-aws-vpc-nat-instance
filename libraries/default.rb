@@ -7,11 +7,9 @@ module AwsVpcNatInstance
       begin
         require 'aws-sdk'
 
-        aws_region = node['ec2']['placement_availability_zone'][0..-2]
-
-        Aws.config(access_key_id: node['aws-vpc-nat-instance']['access_key_id'],
-                   secret_access_key: node['aws-vpc-nat-instance']['secret_access_key'],
-                   region: aws_region)
+        Aws.config[:credentials] = Aws::Credentials.new(
+            node['aws-vpc-nat-instance']['access_key_id'],
+            node['aws-vpc-nat-instance']['secret_access_key'])
 
       rescue LoadError
         Chef::Log.error("Missing gem 'aws-sdk'. Use the default aws recipe to install it first.")
