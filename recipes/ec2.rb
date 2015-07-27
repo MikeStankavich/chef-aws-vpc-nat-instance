@@ -19,6 +19,7 @@
 
 chef_gem 'aws-sdk' do
   version '2.0.32'
+#  version '<2.0'
 end
 
 # call library function here
